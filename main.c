@@ -8,8 +8,11 @@
 #include <unistd.h>
 
 
-void input(char* argv[]);
+void input(char* argv[], char buf[]);
 void sigint_handler(int SIGNAL);
+
+
+const int INP_BUF_SIZE = 1024;
 
 
 int
@@ -25,12 +28,13 @@ main(void)
     {
         pid_t pid;
         char *argv[100];
+        char buf[INP_BUF_SIZE];
 
         // Display shell prompt
         write(1, "(ash) $ ", 8);
 
         // Take user input
-        input(argv);
+        input(argv, buf);
 
         if (argv[0] != NULL)
         {
@@ -43,7 +47,7 @@ main(void)
             // Create child process
             if ((pid = fork()) > 0)
             {
-                wait(0);
+                wait(NULL);
             }
             else if (pid == 0)
             {
@@ -64,14 +68,12 @@ main(void)
    tokens into argv. The last element in
    argv will always be NULL. */
 void
-input(char* argv[])
+input(char* argv[], char buf[])
 {
-    const int BUF_SIZE = 1024;
-    char buf[BUF_SIZE];
     int i;
     
     buf[0] = '\0';
-    fgets((void*) buf, BUF_SIZE, stdin);
+    fgets((void*) buf, INP_BUF_SIZE, stdin);
 
     i = 0;
     argv[i] = strtok(buf, "  \n\0");
