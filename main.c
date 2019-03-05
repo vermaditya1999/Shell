@@ -8,11 +8,11 @@
 #include <unistd.h>
 
 
+const int INP_BUF_SIZE = 1024;
+
+
 void input(char* argv[], char buf[]);
 void sigint_handler(int SIGNAL);
-
-
-const int INP_BUF_SIZE = 1024;
 
 
 int
@@ -22,24 +22,22 @@ main(void)
     // Set signal handler for SIGINT
     signal(SIGINT, sigint_handler);
 
-    int pressed = 0;
-
     while (1)
     {
         pid_t pid;
-        char *argv[100];
+        char *tokens[100];
         char buf[INP_BUF_SIZE];
 
         // Display shell prompt
         write(1, "(ash) $ ", 8);
 
         // Take user input
-        input(argv, buf);
+        input(tokens, buf);
 
-        if (argv[0] != NULL)
+        if (tokens[0] != NULL)
         {
             // Exit if exit command is entered
-            if (strcmp(argv[0], "exit") == 0)
+            if (strcmp(tokens[0], "exit") == 0)
             {
                 exit(0);
             }
@@ -51,8 +49,8 @@ main(void)
             }
             else if (pid == 0)
             {
-                execvp(argv[0], argv);
-                printf("%s: Command not found\n", argv[0]);
+                execvp(tokens[0], tokens);
+                printf("%s: Command not found\n", tokens[0]);
                 exit(0);
             }
             else
@@ -68,18 +66,15 @@ main(void)
    tokens into argv. The last element in
    argv will always be NULL. */
 void
-input(char* argv[], char buf[])
-{
-    int i;
-    
+input(char* tokens[], char buf[])
+{    
     buf[0] = '\0';
-    fgets((void*) buf, INP_BUF_SIZE, stdin);
+    fgets(buf, INP_BUF_SIZE, stdin);
 
-    i = 0;
-    argv[i] = strtok(buf, "  \n\0");
-    while (argv[i] != NULL)
+    tokens[0] = strtok(buf, "  \n\0");
+    for (int i = 1; tokens[i] != NULL; ++i)
     {
-        argv[++i] = strtok(NULL, "  \n\0");
+        tokens[i] = strtok(NULL, "  \n\0");
     }
 }
 
