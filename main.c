@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 const int BUF_SIZE = 1024;
@@ -17,6 +20,7 @@ const int CMD_SIZE = 16;
 void input(char* argv[], char buf[]);
 void sigint_handler(int SIGNAL);
 int partition_tokens(char *tokens[], char *cmds[MAX_CMDS][CMD_SIZE]);
+void set_fd(char *cmd[]);
 
 
 int
@@ -127,6 +131,65 @@ partition_tokens(char *tokens[], char *cmds[MAX_CMDS][CMD_SIZE])
     }
 
     return num_cmds;
+}
+
+
+/* Set the file descriptors according to the
+   IO redirections specified in the cmd array.
+   The input is assumed to be valid. */
+void
+set_fd(char *cmd[])
+{
+    for (int i = 0; cmd[i] != NULL; ++i)
+    {
+        int fd;
+
+        // command > filename
+        if (!strcmp(cmd[i], ">"))
+        {
+            fd = open(cmd[i + 1], O_CREAT | O_RDWR, S_IRWXU);
+            close(1);
+            dup(fd);
+        }
+        // command >> filename
+        else if (!strcmp(cmd[i], ">>"))
+        {
+            fd = open(cmd[i + 1], O_APPEND | O_RDWR, S_IRWXU);
+            if (fd < 1) fd = open(cmd[i + 1], O_CREAT | O_RDWR, S_IRWXU);
+            close(1);
+            dup(fd);
+        }
+        // command < filename
+        else if (!strcmp(cmd[i], "<"))
+        {
+            fd = open(cmd[i + 1], O_RDONLY | O_RDWR, S_IRWXU);
+            close(0);
+            dup(fd);
+        }
+        else if (sizeof(cmd[i]) * sizeof(char) > 2 && *(cmd[i] + 1) == '>')
+        {
+            // 2>&1
+            if (*(cmd[i] + 2) == '&' && *(cmd[i] + 3) == '1') 
+            {
+                close(2);
+                dup(1);
+            }
+            // 1>filename
+            else if (*(cmd[i] + 0) == '1')
+            {
+                fd = open(cmd[i] + 2, O_CREAT | O_RDWR, S_IRWXU);
+                close(1);
+                dup(fd);
+            }
+            // 2>filename
+            else if (*(cmd[i] + 0) == '2')
+            {
+                fd = open(cmd[i] + 2, O_CREAT | O_RDWR, S_IRWXU);
+                close(2);
+                dup(fd);
+            }
+        }
+    }
 }
 
 
