@@ -40,7 +40,7 @@ main(void)
         input(tokens, buf);
 
         // Partition tokens into cmds array
-        num_cmds = cmds_tokens(tokens, cmds);
+        num_cmds = partition_tokens(tokens, cmds);
 
         if (num_cmds > 0)
         {
