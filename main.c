@@ -252,7 +252,7 @@ set_fd(char *cmd[])
         // command > filename
         if (!strcmp(cmd[i], ">"))
         {
-            fd = open(cmd[i + 1], O_CREAT | O_RDWR, S_IRWXU);
+            fd = open(cmd[i + 1], O_CREAT | O_TRUNC | O_RDWR, S_IRWXU);
             close(1);
             dup(fd);
         }
@@ -282,14 +282,14 @@ set_fd(char *cmd[])
             // 1>filename
             else if (*(cmd[i] + 0) == '1')
             {
-                fd = open(cmd[i] + 2, O_CREAT | O_RDWR, S_IRWXU);
+                fd = open(cmd[i] + 2, O_CREAT | O_TRUNC | O_RDWR, S_IRWXU);
                 close(1);
                 dup(fd);
             }
             // 2>filename
             else if (*(cmd[i] + 0) == '2')
             {
-                fd = open(cmd[i] + 2, O_CREAT | O_RDWR, S_IRWXU);
+                fd = open(cmd[i] + 2, O_CREAT | O_TRUNC | O_RDWR, S_IRWXU);
                 close(2);
                 dup(fd);
             }
